@@ -1,16 +1,11 @@
-# multilang_translator
+# Multilang Translator
 
-A new Flutter project.
+Multilang Translator is a Flutter-based application designed to provide users with an easy-to-use tool for translating text between multiple languages simulateneously.
+
+## Features
+
+- **Multiple Language Support**: Translate text between a wide range of languages.
+- **User-Friendly Interface**: Simple and intuitive design for easy navigation and use.
 
 ## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The app is deployed on https://cortwave.github.io/MultilangTranslator
