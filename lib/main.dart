@@ -107,6 +107,9 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: InputDecoration(
                 labelText: 'Enter text',
               ),
+              onSubmitted: (value) {
+                _updateOutput();
+              }
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -119,8 +122,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 itemCount: _translations.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text('Translation (${selectedLanguages[index]}):'),
-                    subtitle: Text(_translations[index]),
+                    title: Text('${availableLanguages[selectedLanguages[index]]}'),
+                    subtitle: SelectableText(_translations[index]),
                   );
                 },
               ),
