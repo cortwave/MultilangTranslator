@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:translator/translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'settings_page.dart';
 
 void main() async {
@@ -29,6 +30,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _inputController = TextEditingController();
+  final Uri _githubUrl = Uri.parse('https://github.com/cortwave/MultilangTranslator');
   List<String> _translations = [];
   GoogleTranslator translator = GoogleTranslator();
   FlutterTts flutterTts = FlutterTts();
@@ -140,6 +142,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             ),
+            Divider(), // To separate the content from the footer
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Source code: '),
+                InkWell(
+                  onTap: () => launchUrl(_githubUrl),
+                  child: Text(
+                    'MultilangTranslator on GitHub',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           ],
         ),
       ),
