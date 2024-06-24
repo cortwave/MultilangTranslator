@@ -30,11 +30,18 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _inputController = TextEditingController();
-  final Uri _githubUrl = Uri.parse('https://github.com/cortwave/MultilangTranslator');
+  final Uri _githubUrl =
+      Uri.parse('https://github.com/cortwave/MultilangTranslator');
   List<String> _translations = [];
   GoogleTranslator translator = GoogleTranslator();
   FlutterTts flutterTts = FlutterTts();
-  List<String> selectedLanguages = ['lt', 'pl', 'he', 'en', 'be']; // default languages
+  List<String> selectedLanguages = [
+    'lt',
+    'pl',
+    'he',
+    'en',
+    'be'
+  ]; // default languages
 
   @override
   void initState() {
@@ -65,11 +72,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _updateOutput() {
     setState(() {
-      _translations = List.generate(selectedLanguages.length, (index) => 'Translating...');
+      _translations =
+          List.generate(selectedLanguages.length, (index) => 'Translating...');
     });
 
     for (int i = 0; i < selectedLanguages.length; i++) {
-      translator.translate(_inputController.text, to: selectedLanguages[i]).then((result) {
+      translator
+          .translate(_inputController.text, to: selectedLanguages[i])
+          .then((result) {
         setState(() {
           _translations[i] = result.text;
         });
@@ -85,7 +95,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void _openSettings() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SettingsPage(selectedLanguages: selectedLanguages)),
+      MaterialPageRoute(
+          builder: (context) =>
+              SettingsPage(selectedLanguages: selectedLanguages)),
     );
 
     if (result != null) {
@@ -100,10 +112,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Multiple languages translator'),
+        title: const Text('Multiple languages translator'),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             onPressed: _openSettings,
           ),
         ],
@@ -113,55 +125,56 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: <Widget>[
             TextField(
-              controller: _inputController,
-              decoration: const InputDecoration(
-                labelText: 'Enter text',
-              ),
-              onSubmitted: (value) {
-                _updateOutput();
-              }
-            ),
-            SizedBox(height: 20),
+                controller: _inputController,
+                decoration: const InputDecoration(
+                  labelText: 'Enter text',
+                ),
+                onSubmitted: (value) {
+                  _updateOutput();
+                }),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _updateOutput,
-              child: Text('Translate'),
+              child: const Text('Translate'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                 itemCount: _translations.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text('${availableLanguages[selectedLanguages[index]]}'),
+                    title:
+                        Text('${availableLanguages[selectedLanguages[index]]}'),
                     subtitle: SelectableText(_translations[index]),
                     trailing: IconButton(
-                      icon: Icon(Icons.volume_up),
-                      onPressed: () => _speak(selectedLanguages[index] ,_translations[index]),
+                      icon: const Icon(Icons.volume_up),
+                      onPressed: () => _speak(
+                          selectedLanguages[index], _translations[index]),
                     ),
                   );
                 },
               ),
             ),
-            Divider(), // To separate the content from the footer
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Source code: '),
-                InkWell(
-                  onTap: () => launchUrl(_githubUrl),
-                  child: Text(
-                    'MultilangTranslator on GitHub',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
+            const Divider(), // To separate the content from the footer
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Source code: '),
+                  InkWell(
+                    onTap: () => launchUrl(_githubUrl),
+                    child: const Text(
+                      'MultilangTranslator on GitHub',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ],
         ),
       ),
