@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:translator/translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'settings_page.dart';
 
 void main() async {
@@ -27,10 +28,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TextEditingController _inputController = TextEditingController();
+  final TextEditingController _inputController = TextEditingController();
   List<String> _translations = [];
   GoogleTranslator translator = GoogleTranslator();
-  List<String> selectedLanguages = ['es', 'fr']; // default languages
+  FlutterTts flutterTts = FlutterTts();
+  List<String> selectedLanguages = ['lt', 'pl', 'he', 'en', 'be']; // default languages
 
   @override
   void initState() {
@@ -46,6 +48,12 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedLanguages = savedLanguages;
       });
     }
+  }
+
+  Future<void> _speak(String lang, String text) async {
+    await flutterTts.setLanguage(lang); // Set the language for TTS
+    await flutterTts.setPitch(1.0); // Set the pitch for TTS
+    await flutterTts.speak(text); // Speak the text
   }
 
   Future<void> _saveSelectedLanguages() async {
@@ -104,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             TextField(
               controller: _inputController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Enter text',
               ),
               onSubmitted: (value) {
@@ -124,6 +132,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   return ListTile(
                     title: Text('${availableLanguages[selectedLanguages[index]]}'),
                     subtitle: SelectableText(_translations[index]),
+                    trailing: IconButton(
+                      icon: Icon(Icons.volume_up),
+                      onPressed: () => _speak(selectedLanguages[index] ,_translations[index]),
+                    ),
                   );
                 },
               ),
