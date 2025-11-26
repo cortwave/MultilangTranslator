@@ -3,6 +3,7 @@ import 'package:translator/translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'settings_page.dart';
 
 void main() async {
@@ -42,11 +43,15 @@ class _MyHomePageState extends State<MyHomePage> {
     'en',
     'be'
   ]; // default languages
+  String? _sourceLanguage; // null means auto-detect
+  String? _detectedLanguage; // stores detected language when in auto-detect mode
+  static const String _autoDetectValue = '__AUTO_DETECT__';
 
   @override
   void initState() {
     super.initState();
     _loadSelectedLanguages();
+    _loadSourceLanguage();
   }
 
   Future<void> _loadSelectedLanguages() async {
@@ -57,6 +62,37 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedLanguages = savedLanguages;
       });
     }
+  }
+
+  Future<void> _loadSourceLanguage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedSourceLanguage = prefs.getString('sourceLanguage');
+    setState(() {
+      // Convert empty string or null to null (auto-detect)
+      _sourceLanguage = (savedSourceLanguage == null || savedSourceLanguage.isEmpty) 
+          ? null 
+          : savedSourceLanguage;
+    });
+  }
+
+  Future<void> _saveSourceLanguage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (_sourceLanguage == null) {
+      await prefs.remove('sourceLanguage');
+    } else {
+      await prefs.setString('sourceLanguage', _sourceLanguage!);
+    }
+  }
+
+  // Convert internal null (auto-detect) to display value
+  String? _getDisplayValue() {
+    return _sourceLanguage ?? _autoDetectValue;
+  }
+
+  // Convert display value back to internal value
+  String? _getInternalValue(String? displayValue) {
+    if (displayValue == _autoDetectValue) return null;
+    return displayValue;
   }
 
   Future<void> _speak(String lang, String text) async {
@@ -74,14 +110,23 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _translations =
           List.generate(selectedLanguages.length, (index) => 'Translating...');
+      _detectedLanguage = null; // Reset detected language
     });
 
     for (int i = 0; i < selectedLanguages.length; i++) {
-      translator
-          .translate(_inputController.text, to: selectedLanguages[i])
-          .then((result) {
+      // Build translation request with optional from parameter
+      final translationFuture = _sourceLanguage == null
+          ? translator.translate(_inputController.text, to: selectedLanguages[i])
+          : translator.translate(_inputController.text,
+              from: _sourceLanguage!, to: selectedLanguages[i]);
+
+      translationFuture.then((result) {
         setState(() {
           _translations[i] = result.text;
+          // Store detected language if in auto-detect mode and this is the first translation
+          if (_sourceLanguage == null && _detectedLanguage == null && i == 0) {
+            _detectedLanguage = result.sourceLanguage.code;
+          }
         });
       }).catchError((error) {
         print("Translation error for ${selectedLanguages[i]}: $error");
@@ -132,6 +177,73 @@ class _MyHomePageState extends State<MyHomePage> {
                 onSubmitted: (value) {
                   _updateOutput();
                 }),
+            const SizedBox(height: 16),
+            // Source language dropdown with search
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                width: 300,
+                child: DropdownSearch<String>(
+                  selectedItem: _getDisplayValue(),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchFieldProps: TextFieldProps(
+                      decoration: InputDecoration(
+                        hintText: 'Search language...',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  items: [
+                    _autoDetectValue,
+                    ...availableLanguages.entries.map((entry) => entry.key).toList(),
+                  ],
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      labelText: 'Translate from',
+                      border: OutlineInputBorder(),
+                      hintText: 'Auto-detect',
+                    ),
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _sourceLanguage = _getInternalValue(newValue);
+                      _detectedLanguage = null; // Reset detected language when changing source
+                    });
+                    _saveSourceLanguage();
+                  },
+                  itemAsString: (String? item) {
+                    if (item == null || item == _autoDetectValue) return 'Auto-detect';
+                    return availableLanguages[item] ?? item;
+                  },
+                  filterFn: (String? item, String? filter) {
+                    if (item == null) return false;
+                    if (item == _autoDetectValue) {
+                      return 'auto-detect'.toLowerCase().contains(filter?.toLowerCase() ?? '');
+                    }
+                    final languageName = availableLanguages[item] ?? '';
+                    final languageCode = item.toLowerCase();
+                    return languageName.toLowerCase().contains(filter?.toLowerCase() ?? '') ||
+                           languageCode.contains(filter?.toLowerCase() ?? '');
+                  },
+                  compareFn: (String? item1, String? item2) {
+                    return item1 == item2;
+                  },
+                ),
+              ),
+            ),
+            // Show detected language when in auto-detect mode
+            if (_sourceLanguage == null && _detectedLanguage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'Detected language: ${availableLanguages[_detectedLanguage] ?? _detectedLanguage}',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _updateOutput,
